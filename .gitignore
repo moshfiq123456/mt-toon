@@ -1,0 +1,34 @@
+cat > .gitignore << 'GITEOF'
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+bin/
+dist/
+
+# Test coverage
+*.out
+*.html
+coverage.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependencies
+vendor/
+
+# Build
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+GITEOF
