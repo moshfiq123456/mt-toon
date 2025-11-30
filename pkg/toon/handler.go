@@ -355,3 +355,72 @@ func (h *Handler) Response() *Response {
 	}
 	return h.resp
 }
+
+// PrintFormatted prints the response data in formatted Toon structure
+// It displays the data in a hierarchical tree format
+func (h *Handler) PrintFormatted() error {
+	if h == nil || h.resp == nil {
+		return &ValidationError{
+			Code:    ErrCodeNilHandler,
+			Message: "handler is nil",
+		}
+	}
+
+	var data map[string]interface{}
+	if err := h.UnmarshalData(&data); err != nil {
+		return err
+	}
+
+	printJSONStructure(data, "")
+	return nil
+}
+// printJSONStructure recursively prints JSON data in hierarchical format
+func printJSONStructure(data interface{}, indent string) {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		for key, value := range v {
+			switch val := value.(type) {
+			case map[string]interface{}:
+				fmt.Printf("%s%s\n", indent, key)
+				printJSONStructure(val, indent+"    ")
+			case []interface{}:
+				if len(val) > 0 {
+					fmt.Printf("%s%s\n", indent, key)
+					for i, item := range val {
+						if itemMap, ok := item.(map[string]interface{}); ok {
+							// Get singular form of key
+							singularKey := key
+							if len(key) > 1 && key[len(key)-1] == 's' {
+								singularKey = key[:len(key)-1]
+							}
+							fmt.Printf("%s    %s\n", indent, singularKey)
+							printJSONStructure(itemMap, indent+"        ")
+							if i < len(val)-1 {
+								fmt.Printf("\n")
+							}
+						} else {
+							fmt.Printf("%s    %v\n", indent, item)
+						}
+					}
+				} else {
+					fmt.Printf("%s%s\n", indent, key)
+				}
+			case []string:
+				fmt.Printf("%s%s\n", indent, key)
+				for _, item := range val {
+					fmt.Printf("%s    \"%s\"\n", indent, item)
+				}
+			case string:
+				fmt.Printf("%s%s \"%s\"\n", indent, key, val)
+			case float64:
+				fmt.Printf("%s%s %v\n", indent, key, val)
+			case bool:
+				fmt.Printf("%s%s %v\n", indent, key, val)
+			case nil:
+				fmt.Printf("%s%s\n", indent, key)
+			default:
+				fmt.Printf("%s%s %v\n", indent, key, val)
+			}
+		}
+	}
+}
